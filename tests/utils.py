@@ -1,7 +1,7 @@
 from thefuck import types
 from thefuck.conf import DEFAULT_PRIORITY
 
-
+# test travisci
 def Command(script='', stdout='', stderr=''):
     return types.Command(script, stdout, stderr)
 
