@@ -14,7 +14,7 @@ E: Could not open lock file /var/lib/dpkg/lock - open (13: Permission denied)
 E: Unable to lock the administration directory (/var/lib/dpkg/), are you root?
 
 ➜ fuck
-sudo apt-get install vim [enter/ctrl+c]
+sudo apt-get install vim [enter/↑/↓/ctrl+c]
 [sudo] password for nvbn:
 Reading package lists... Done
 ...
@@ -29,7 +29,7 @@ To push the current branch and set the remote as upstream, use
 
 
 ➜ fuck
-git push --set-upstream origin master [enter/ctrl+c]
+git push --set-upstream origin master [enter/↑/↓/ctrl+c]
 Counting objects: 9, done.
 ...
 ```
@@ -42,7 +42,7 @@ No command 'puthon' found, did you mean:
 zsh: command not found: puthon
 
 ➜ fuck
-python [enter/ctrl+c]
+python [enter/↑/↓/ctrl+c]
 Python 3.4.2 (default, Oct  8 2014, 13:08:17)
 ...
 ```
@@ -55,7 +55,7 @@ Did you mean this?
 	branch
 
 ➜ fuck
-git branch [enter/ctrl+c]
+git branch [enter/↑/↓/ctrl+c]
 * master
 ```
 
@@ -67,7 +67,7 @@ Did you mean this?
          repl
 
 ➜ fuck
-lein repl [enter/ctrl+c]
+lein repl [enter/↑/↓/ctrl+c]
 nREPL server started on port 54848 on host 127.0.0.1 - nrepl://127.0.0.1:54848
 REPL-y 0.3.1
 ...
@@ -146,6 +146,7 @@ using the matched rule and runs it. Rules enabled by default are as follows:
 * `docker_not_command` &ndash; fixes wrong docker commands like `docker tags`;
 * `dry` &ndash; fixes repetitions like `git git push`;
 * `fix_alt_space` &ndash; replaces Alt+Space with Space character;
+* `fix_file` &ndash; opens a file with an error in your `$EDITOR`;
 * `git_add` &ndash; fixes *"Did you forget to 'git add'?"*;
 * `git_branch_delete` &ndash; changes `git branch -d` to `git branch -D`;
 * `git_branch_list` &ndash; catches `git branch list` in place of `git branch` and removes created branch;
@@ -212,7 +213,7 @@ in `~/.thefuck/rules`. The rule should contain two functions:
 
 ```python
 match(command: Command, settings: Settings) -> bool
-get_new_command(command: Command, settings: Settings) -> str
+get_new_command(command: Command, settings: Settings) -> str | list[str]
 ```
 
 Also the rule can contain an optional function `side_effect(command: Command, settings: Settings) -> None`
