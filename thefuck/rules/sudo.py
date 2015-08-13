@@ -9,6 +9,7 @@ patterns = ['permission denied',
             'This operation requires root.',
             'requested operation requires superuser privilege',
             'must be run as root',
+            'must run as root',
             'must be superuser',
             'must be root',
             'need to be root',
@@ -27,4 +28,7 @@ def match(command, settings):
 
 
 def get_new_command(command, settings):
-    return u'sudo {}'.format(command.script)
+    if '>' in command.script:
+        return u'sudo sh -c "{}"'.format(command.script.replace('"', '\\"'))
+    else:
+        return u'sudo {}'.format(command.script)
