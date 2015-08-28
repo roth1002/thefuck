@@ -40,6 +40,7 @@ parametrize_script = pytest.mark.parametrize('script, fixed', [
     ('tar -xvf {}', 'mkdir -p foo && tar -xvf {} -C foo'),
     ('tar --extract -f {}', 'mkdir -p foo && tar --extract -f {} -C foo')])
 
+
 @parametrize_filename
 @parametrize_script
 def test_match(tar_error, filename, script, fixed):
@@ -51,7 +52,7 @@ def test_match(tar_error, filename, script, fixed):
 @parametrize_script
 def test_side_effect(tar_error, filename, script, fixed):
     tar_error(filename)
-    side_effect(Command(script=script.format(filename)), None)
+    side_effect(Command(script=script.format(filename)), None, None)
     assert(os.listdir('.') == [filename])
 
 

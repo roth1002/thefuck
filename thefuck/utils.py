@@ -1,12 +1,13 @@
 from difflib import get_close_matches
 from functools import wraps
-from pathlib import Path
-from shlex import split
+from decorator import decorator
+
 import os
 import pickle
 import re
+
+from pathlib import Path
 import six
-from .types import Command
 
 
 DEVNULL = open(os.devnull, 'w')
@@ -47,65 +48,9 @@ def wrap_settings(params):
             print(settings.apt)
 
     """
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(command, settings):
-            return fn(command, settings.update(**params))
-        return wrapper
-    return decorator
-
-
-def sudo_support(fn):
-    """Removes sudo before calling fn and adds it after."""
-    @wraps(fn)
-    def wrapper(command, settings):
-        if not command.script.startswith('sudo '):
-            return fn(command, settings)
-
-        result = fn(Command(command.script[5:],
-                            command.stdout,
-                            command.stderr),
-                    settings)
-
-        if result and isinstance(result, six.string_types):
-            return u'sudo {}'.format(result)
-        elif isinstance(result, list):
-            return [u'sudo {}'.format(x) for x in result]
-        else:
-            return result
-    return wrapper
-
-
-def git_support(fn):
-    """Resolves git aliases and supports testing for both git and hub."""
-    @wraps(fn)
-    def wrapper(command, settings):
-        # supports GitHub's `hub` command
-        # which is recommended to be used with `alias git=hub`
-        # but at this point, shell aliases have already been resolved
-        is_git_cmd = command.script.startswith(('git', 'hub'))
-
-        if not is_git_cmd:
-            return False
-
-        # perform git aliases expansion
-        if 'trace: alias expansion:' in command.stderr:
-            search = re.search("trace: alias expansion: ([^ ]*) => ([^\n]*)",
-                               command.stderr)
-            alias = search.group(1)
-
-            # by default git quotes everything, for example:
-            #     'commit' '--amend'
-            # which is surprising and does not allow to easily test for
-            # eg. 'git commit'
-            expansion = ' '.join(map(quote, split(search.group(2))))
-            new_script = command.script.replace(alias, expansion)
-
-            command = Command._replace(command, script=new_script)
-
-        return fn(command, settings)
-
-    return wrapper
+    def _wrap_settings(fn, command, settings):
+        return fn(command, settings.update(**params))
+    return decorator(_wrap_settings)
 
 
 def memoize(fn):
@@ -163,11 +108,9 @@ def replace_argument(script, from_, to):
             u' {} '.format(from_), u' {} '.format(to), 1)
 
 
-def eager(fn):
-    @wraps(fn)
-    def wrapper(*args, **kwargs):
-        return list(fn(*args, **kwargs))
-    return wrapper
+@decorator
+def eager(fn, *args, **kwargs):
+    return list(fn(*args, **kwargs))
 
 
 @eager
@@ -185,3 +128,24 @@ def replace_command(command, broken, matched):
     new_cmds = get_close_matches(broken, matched, cutoff=0.1)
     return [replace_argument(command.script, broken, new_cmd.strip())
             for new_cmd in new_cmds]
+
+
+@memoize
+def is_app(command, *app_names):
+    """Returns `True` if command is call to one of passed app names."""
+    for name in app_names:
+        if command.script == name \
+                or command.script.startswith(u'{} '.format(name)):
+            return True
+    return False
+
+
+def for_app(*app_names):
+    """Specifies that matching script is for on of app names."""
+    def _for_app(fn, command, settings):
+        if is_app(command, *app_names):
+            return fn(command, settings)
+        else:
+            return False
+
+    return decorator(_for_app)

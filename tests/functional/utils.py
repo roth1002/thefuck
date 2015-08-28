@@ -1,3 +1,4 @@
+import pytest
 import os
 import subprocess
 import shutil
@@ -5,39 +6,43 @@ from tempfile import mkdtemp
 from pathlib import Path
 import sys
 import pexpect
-import pytest
+from tests.utils import root
 
-root = str(Path(__file__).parent.parent.parent.resolve())
+
 bare = os.environ.get('BARE')
 enabled = os.environ.get('FUNCTIONAL')
 
 
-def build_container(tag, dockerfile):
+def build_container(tag, dockerfile, copy_src=False):
     tmpdir = mkdtemp()
     try:
-        with Path(tmpdir).joinpath('Dockerfile').open('w') as file:
+        if copy_src:
+            subprocess.call(['cp', '-a', str(root), tmpdir])
+        dockerfile_path = Path(tmpdir).joinpath('Dockerfile')
+        with dockerfile_path.open('w') as file:
             file.write(dockerfile)
-        if subprocess.call(['docker', 'build', '--tag={}'.format(tag), tmpdir],
-                           cwd=root) != 0:
+        if subprocess.call(['docker', 'build', '--tag={}'.format(tag), tmpdir]) != 0:
             raise Exception("Can't build a container")
     finally:
         shutil.rmtree(tmpdir)
 
 
-def spawn(request, tag, dockerfile, cmd):
+def spawn(request, tag, dockerfile, cmd, install=True, copy_src=False):
     if bare:
         proc = pexpect.spawnu(cmd)
     else:
         tag = 'thefuck/{}'.format(tag)
-        build_container(tag, dockerfile)
+        build_container(tag, dockerfile, copy_src)
         proc = pexpect.spawnu('docker run --volume {}:/src --tty=true '
                               '--interactive=true {} {}'.format(root, tag, cmd))
-        proc.sendline('pip install /src')
+        if install:
+            proc.sendline('pip install /src')
+
     proc.sendline('cd /')
 
     proc.logfile = sys.stdout
 
-    request.addfinalizer(proc.terminate)
+    request.addfinalizer(lambda: proc.terminate(True))
     return proc
 
 

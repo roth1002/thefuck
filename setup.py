@@ -20,9 +20,9 @@ elif (3, 0) < version < (3, 3):
           ' ({}.{} detected).'.format(*version))
     sys.exit(-1)
 
-VERSION = '2.7'
+VERSION = '2.8'
 
-install_requires = ['psutil', 'colorama', 'six']
+install_requires = ['psutil', 'colorama', 'six', 'decorator']
 extras_require = {':python_version<"3.4"': ['pathlib']}
 
 setup(name='thefuck',

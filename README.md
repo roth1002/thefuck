@@ -94,7 +94,15 @@ Reading package lists... Done
 - pip
 - python-dev
 
-## Installation
+## Installation [*experimental*]
+
+On Ubuntu and OS X you can install `The Fuck` with installation script:
+ 
+```bash
+wget -O - https://raw.githubusercontent.com/nvbn/thefuck/master/install.sh | sh - && $0
+```
+
+## Manual installation
 
 Install `The Fuck` with `pip`:
 
@@ -163,7 +171,7 @@ using the matched rule and runs it. Rules enabled by default are as follows:
 * `grep_recursive` &ndash; adds `-r` when you trying to `grep` directory;
 * `gulp_not_task` &ndash; fixes misspelled gulp tasks;
 * `has_exists_script` &ndash; prepends `./` when script/binary exists;
-* `heroku_no_command` &ndash; fixes wrong `heroku` commands like `heroku log`;
+* `heroku_not_command` &ndash; fixes wrong `heroku` commands like `heroku log`;
 * `history` &ndash; tries to replace command with most similar command from history;
 * `java` &ndash; removes `.java` extension when running Java programs;
 * `javac` &ndash; appends missing `.java` when compiling Java files;
@@ -173,6 +181,8 @@ using the matched rule and runs it. Rules enabled by default are as follows:
 * `man_no_space` &ndash; fixes man commands without spaces, for example `mandiff`;
 * `mercurial` &ndash; fixes wrong `hg` commands;
 * `mkdir_p` &ndash; adds `-p` when you trying to create directory without parent;
+* `mvn_no_command` &ndash; adds `clean package` to `mvn`;
+* `mvn_unknown_lifecycle_phase` &ndash; fixes miss spelt lifecycle phases with `mvn`;
 * `no_command` &ndash; fixes wrong console commands, for example `vom/vim`;
 * `no_such_file` &ndash; creates missing directories with `mv` and `cp` commands;
 * `open` &ndash; prepends `http` to address passed to `open`;
@@ -185,21 +195,25 @@ using the matched rule and runs it. Rules enabled by default are as follows:
 * `sl_ls` &ndash; changes `sl` to `ls`;
 * `ssh_known_hosts` &ndash; removes host from `known_hosts` on warning;
 * `sudo` &ndash; prepends `sudo` to previous command if it failed because of permissions;
-* `switch_layout` &ndash; switches command from your local layout to en;
+* `switch_lang` &ndash; switches command from your local layout to en;
 * `systemctl` &ndash; correctly orders parameters of confusing `systemctl`;
 * `test.py` &ndash; runs `py.test` instead of `test.py`;
 * `tsuru_login` &ndash; runs `tsuru login` if not authenticated or session expired;
-* `tsuru_not_command` &ndash; fixes wrong tsuru commands like `tsuru shell`;
+* `tsuru_not_command` &ndash; fixes wrong `tsuru` commands like `tsuru shell`;
 * `tmux` &ndash; fixes `tmux` commands;
+* `unknown_command` &ndash; fixes hadoop hdfs-style "unknown command" for example adds missing '-' to the command on `hdfs dfs ls`;
+* `vagrant_up` &ndash; starts up the vagrant instance;
 * `whois` &ndash; fixes `whois` command.
 
 Enabled by default only on specific platforms:
 
 * `apt_get` &ndash; installs app from apt if it not installed;
+* `apt_get_search` &ndash; changes trying to search using `apt-get` with searching using `apt-cache`
 * `brew_install` &ndash; fixes formula name for `brew install`;
 * `brew_unknown_command` &ndash; fixes wrong brew commands, for example `brew docto/brew doctor`;
 * `brew_upgrade` &ndash; appends `--all` to `brew upgrade` as per Homebrew's new behaviour;
-* `pacman` &ndash; installs app with `pacman` or `yaourt` if it is not installed.
+* `pacman` &ndash; installs app with `pacman` if it is not installed (uses `yaourt` if available).
+* `pacman_not_found` &ndash; fix package name with `pacman` or `yaourt`;
 
 Bundled, but not enabled by default:
 
@@ -216,7 +230,11 @@ match(command: Command, settings: Settings) -> bool
 get_new_command(command: Command, settings: Settings) -> str | list[str]
 ```
 
-Also the rule can contain an optional function `side_effect(command: Command, settings: Settings) -> None`
+Also the rule can contain an optional function
+
+```python
+side_effect(old_command: Command, fixed_command: str, settings: Settings) -> None
+```
 and optional `enabled_by_default`, `requires_output` and `priority` variables.
 
 `Command` has three attributes: `script`, `stdout` and `stderr`.

@@ -1,12 +1,12 @@
-#!/usr/bin/env python
-__author__ = "mmussomele"
-
 """Attempts to spellcheck and correct failed cd commands"""
 
 import os
 from difflib import get_close_matches
-from thefuck.utils import sudo_support
+from thefuck.specific.sudo import sudo_support
 from thefuck.rules import cd_mkdir
+from thefuck.utils import for_app
+
+__author__ = "mmussomele"
 
 MAX_ALLOWED_DIFF = 0.6
 
@@ -17,6 +17,7 @@ def _get_sub_dirs(parent):
 
 
 @sudo_support
+@for_app('cd')
 def match(command, settings):
     """Match function copied from cd_mkdir.py"""
     return (command.script.startswith('cd ')
@@ -28,8 +29,8 @@ def match(command, settings):
 def get_new_command(command, settings):
     """
     Attempt to rebuild the path string by spellchecking the directories.
-    If it fails (i.e. no directories are a close enough match), then it 
-    defaults to the rules of cd_mkdir. 
+    If it fails (i.e. no directories are a close enough match), then it
+    defaults to the rules of cd_mkdir.
     Change sensitivity by changing MAX_ALLOWED_DIFF. Default value is 0.6
     """
     dest = command.script.split()[1].split(os.sep)
